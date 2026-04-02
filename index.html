@@ -1,0 +1,929 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lending BSA Prep • Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+    :root {
+      --primary: #10b981;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .title-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .option-btn {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .option-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 25px -5px rgb(16 185 129);
+    }
+    .correct {
+      animation: pop 0.3s ease forwards;
+      border-color: #10b981 !important;
+      background-color: #052e16 !important;
+      color: #10b981;
+    }
+    .incorrect {
+      animation: shake 0.3s ease forwards;
+      border-color: #ef4444 !important;
+      background-color: #450a0a !important;
+      color: #ef4444;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .timer-bar {
+      transition: width 1s linear;
+    }
+    .screen {
+      animation: fadeIn 0.4s ease forwards;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+  <div class="max-w-4xl mx-auto p-8">
+
+    <!-- HEADER -->
+    <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center gap-x-3">
+        <div class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center text-3xl shadow-inner">💼</div>
+        <div>
+          <h1 class="title-font text-4xl font-semibold tracking-tighter">BSA Quiz</h1>
+          <p class="text-emerald-400 text-sm -mt-1 tracking-[1px]">LENDING DOMAIN • INTERVIEW READY</p>
+        </div>
+      </div>
+      <div onclick="showHighScore()" class="cursor-pointer flex items-center gap-x-2 bg-white/10 hover:bg-white/20 px-5 h-10 rounded-3xl text-sm font-medium transition-colors">
+        <i class="fa-solid fa-trophy text-emerald-400"></i>
+        HIGH SCORE <span id="high-score-display" class="font-mono ml-1 text-emerald-400">0/15</span>
+      </div>
+    </div>
+
+    <!-- LANDING SCREEN -->
+    <div id="landing-screen" class="screen flex flex-col items-center justify-center min-h-[75vh] text-center">
+      <div class="max-w-lg">
+        <div class="inline-flex items-center rounded-3xl bg-emerald-500/10 text-emerald-400 px-6 py-2 text-sm font-semibold mb-6 gap-x-2">
+          <i class="fa-solid fa-stopwatch"></i>
+          15 QUESTIONS • 10 SECONDS EACH • RANDOM
+        </div>
+        <h2 class="title-font text-6xl leading-none font-semibold tracking-tighter mb-4">Master the Business Systems Analyst Role</h2>
+        <p class="text-zinc-400 text-2xl mb-10">Lending Domain (Auto &amp; Equipment Financing/Leasing) • Requirements • Agile • Stakeholder Management • BPM • SQL Server • Wireframing &amp; more</p>
+        
+        <button onclick="startNewRound()" 
+                class="w-full max-w-xs mx-auto group bg-emerald-500 hover:bg-emerald-600 transition-all active:scale-95 text-white text-2xl font-semibold py-7 rounded-3xl flex items-center justify-center gap-x-4 shadow-2xl shadow-emerald-500/40">
+          START ROUND
+          <i class="fa-solid fa-arrow-right group-active:translate-x-1 transition-transform"></i>
+        </button>
+
+        <div class="mt-12 grid grid-cols-3 gap-6 text-xs text-zinc-500">
+          <div class="flex flex-col items-center">
+            <div class="text-4xl mb-2">📋</div>
+            <div class="font-medium">Requirements Gathering</div>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="text-4xl mb-2">🔄</div>
+            <div class="font-medium">Agile &amp; Backlog</div>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="text-4xl mb-2">📊</div>
+            <div class="font-medium">Lending Domain + SQL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" class="screen hidden">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-x-4">
+          <div class="bg-white/10 px-6 py-2 rounded-3xl font-medium text-sm flex items-center">
+            QUESTION <span id="q-number" class="font-mono ml-2 text-2xl text-emerald-400">1</span><span class="text-zinc-400 mx-1">/15</span>
+          </div>
+          <div id="category-pill" class="px-6 py-2 bg-emerald-400/10 text-emerald-400 text-sm font-semibold rounded-3xl"></div>
+        </div>
+
+        <!-- Timer -->
+        <div class="flex items-center gap-x-4">
+          <span class="text-sm font-medium text-zinc-400">TIME LEFT</span>
+          <div class="relative w-14 h-14">
+            <svg class="w-14 h-14 -rotate-90" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" fill="none" stroke="#27272a" stroke-width="8"></circle>
+              <circle id="timer-progress" cx="24" cy="24" r="20" fill="none" stroke="#10b981" stroke-width="8" stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round"></circle>
+            </svg>
+            <div id="timer-count" class="absolute inset-0 flex items-center justify-center text-3xl font-semibold font-mono">10</div>
+          </div>
+        </div>
+
+        <div class="flex items-center bg-white/10 text-emerald-400 px-5 h-10 rounded-3xl font-mono text-xl">
+          <i class="fa-solid fa-trophy mr-2"></i>
+          <span id="live-score">0</span>
+        </div>
+      </div>
+
+      <div class="bg-white/5 border border-white/10 rounded-3xl p-10 mb-8">
+        <p id="question-text" class="text-2xl font-medium leading-tight mb-10"></p>
+        
+        <div id="options-grid" class="grid grid-cols-1 gap-4"></div>
+      </div>
+
+      <!-- Feedback area -->
+      <div id="feedback-panel" class="hidden bg-emerald-900/30 border border-emerald-400/30 rounded-3xl p-8">
+        <div id="feedback-icon" class="text-5xl mb-4"></div>
+        <div id="feedback-title" class="text-2xl font-semibold mb-3"></div>
+        <div id="feedback-explanation" class="text-zinc-300 leading-relaxed"></div>
+        <button onclick="nextQuestion()" 
+                class="mt-8 px-10 py-4 bg-white text-zinc-900 rounded-3xl font-semibold flex items-center gap-x-3 mx-auto">
+          NEXT QUESTION <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="results-screen" class="screen hidden flex-col items-center justify-center min-h-[75vh]">
+      <div class="text-center max-w-md">
+        <h2 class="title-font text-5xl font-semibold mb-2">Round Complete!</h2>
+        <div id="results-score" class="font-mono text-[120px] leading-none font-bold text-emerald-400 mb-2">12</div>
+        <div class="text-4xl text-zinc-400 mb-8">/ 15</div>
+
+        <div class="flex justify-center gap-8 mb-12">
+          <div class="text-center">
+            <div class="text-emerald-400 text-sm font-medium">CORRECT</div>
+            <div id="correct-num" class="text-5xl font-bold">12</div>
+          </div>
+          <div class="text-center">
+            <div class="text-red-400 text-sm font-medium">INCORRECT</div>
+            <div id="incorrect-num" class="text-5xl font-bold">3</div>
+          </div>
+          <div class="text-center">
+            <div class="text-sky-400 text-sm font-medium">ACCURACY</div>
+            <div id="accuracy-num" class="text-5xl font-bold">80%</div>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <button onclick="restartQuiz()" 
+                  class="flex-1 py-6 bg-emerald-500 hover:bg-emerald-600 rounded-3xl text-xl font-semibold transition-colors">
+            NEW ROUND
+          </button>
+          <button onclick="showReview()" 
+                  class="flex-1 py-6 bg-white/10 hover:bg-white/20 rounded-3xl text-xl font-semibold transition-colors">
+            REVIEW ANSWERS
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW MODAL -->
+    <div onclick="if(event.target.id === 'review-modal')hideReview()" 
+         id="review-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+      <div onclick="event.stopImmediatePropagation()" 
+           class="bg-zinc-900 w-full max-w-3xl mx-4 rounded-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="px-8 py-6 border-b flex justify-between items-center">
+          <h3 class="text-2xl font-semibold">Your Answers • Round Review</h3>
+          <i onclick="hideReview()" class="fa-solid fa-xmark text-3xl cursor-pointer hover:text-emerald-400"></i>
+        </div>
+        <div id="review-list" class="flex-1 overflow-auto p-8 space-y-8"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TAILWIND INIT
+    function initializeTailwind() {
+      return {
+        config(userConfig = {}) {
+          return {
+            configUser: userConfig,
+            theme: {
+              extend: {},
+            },
+          }
+        },
+        theme: {
+          extend: {},
+        },
+      }
+    }
+    document.documentElement.setAttribute('data-tailwind-config', JSON.stringify(initializeTailwind()))
+
+    // FULL QUESTIONS JSON - EASILY EXTENDABLE
+    // Just add new objects following the same structure. The app will automatically include them.
+    const questionsPool = [
+      {
+        id: 1,
+        category: "Lending Domain",
+        question: "What is the primary difference between auto/equipment financing and leasing?",
+        options: [
+          "In financing, ownership transfers to the customer at the end; in leasing, the lessor retains ownership unless a buyout is exercised",
+          "Leasing always has higher monthly payments",
+          "Financing does not require any collateral",
+          "Leasing is only available for new vehicles/equipment"
+        ],
+        correct: 0,
+        explanation: "Financing results in ownership transfer. Leasing is essentially a rental with an optional residual-value buyout."
+      },
+      {
+        id: 2,
+        category: "Lending Domain",
+        question: "In equipment leasing, what does FMV stand for and why is it important?",
+        options: [
+          "Fair Market Value – determines the purchase price option at lease end",
+          "Fixed Monthly Value",
+          "Full Maturity Value",
+          "Future Minimum Value"
+        ],
+        correct: 0,
+        explanation: "FMV lease gives the lessee the right to purchase the asset at its fair market value at the end of the term."
+      },
+      {
+        id: 3,
+        category: "Lending Domain",
+        question: "Which risk is most critical in auto financing for the lender?",
+        options: [
+          "Credit risk of the borrower (assessed via credit score, DTI, LTV)",
+          "Only regulatory risk",
+          "Residual value risk (exclusive to leasing)",
+          "Market liquidity risk only"
+        ],
+        correct: 0,
+        explanation: "Credit risk is the foundation of lending decisions in auto financing."
+      },
+      {
+        id: 4,
+        category: "Lending Domain",
+        question: "What is a chattel mortgage commonly used for in auto financing?",
+        options: [
+          "It provides the lender a security interest in the financed vehicle",
+          "It is a type of insurance product",
+          "It is a lease agreement",
+          "It is a tax document only"
+        ],
+        correct: 0,
+        explanation: "A chattel mortgage secures the loan against the movable property (the vehicle)."
+      },
+      {
+        id: 5,
+        category: "Lending Domain",
+        question: "What is the typical loan origination process flow in auto financing?",
+        options: [
+          "Application → Credit check → Underwriting → Approval → Funding → Servicing",
+          "Only dealer inventory check",
+          "Post-funding only",
+          "No underwriting required"
+        ],
+        correct: 0,
+        explanation: "This is the standard end-to-end process a BSA must understand and optimize."
+      },
+      {
+        id: 6,
+        category: "Requirements Gathering",
+        question: "Which is the BEST technique for gathering detailed stakeholder requirements?",
+        options: [
+          "Joint Application Design (JAD) sessions &amp; one-on-one interviews",
+          "Sending a generic email survey",
+          "Directly writing code",
+          "Waiting for the developer to ask questions"
+        ],
+        correct: 0,
+        explanation: "Interactive sessions with stakeholders yield the highest quality requirements."
+      },
+      {
+        id: 7,
+        category: "Requirements Gathering",
+        question: "Functional requirements describe:",
+        options: [
+          "What the system must do (features and behaviors)",
+          "How fast or secure the system must be",
+          "Only the UI layout",
+          "Only the database schema"
+        ],
+        correct: 0,
+        explanation: "Functional = business behavior; non-functional = quality attributes."
+      },
+      {
+        id: 8,
+        category: "Requirements Gathering",
+        question: "What document is typically produced during requirements gathering in a BSA role?",
+        options: [
+          "Business Requirements Document (BRD) or Functional Requirements Document (FRD)",
+          "Only the final code",
+          "Marketing collateral",
+          "Server configuration file"
+        ],
+        correct: 0,
+        explanation: "BRD/FRD are core deliverables for any BA/BSA."
+      },
+      {
+        id: 9,
+        category: "Requirements Gathering",
+        question: "The best way to validate requirements is:",
+        options: [
+          "Stakeholder sign-off and traceability matrix",
+          "Only developer review",
+          "No validation needed",
+          "Post-deployment user feedback only"
+        ],
+        correct: 0,
+        explanation: "Early validation prevents costly rework."
+      },
+      {
+        id: 10,
+        category: "Requirements Gathering",
+        question: "A good requirement should be:",
+        options: [
+          "Specific, Measurable, Achievable, Relevant, Time-bound (SMART)",
+          "Vague and open-ended",
+          "Written only in technical jargon",
+          "Assumed by the development team"
+        ],
+        correct: 0,
+        explanation: "SMART requirements are the industry standard."
+      },
+      {
+        id: 11,
+        category: "Agile/Scrum",
+        question: "In Scrum, who is responsible for prioritizing the Product Backlog?",
+        options: [
+          "Product Owner",
+          "Scrum Master",
+          "Development Team",
+          "Stakeholders only"
+        ],
+        correct: 0,
+        explanation: "The Product Owner owns the backlog and maximizes product value."
+      },
+      {
+        id: 12,
+        category: "Agile/Scrum",
+        question: "What is the purpose of a Sprint Retrospective?",
+        options: [
+          "Team reflects on what went well, what didn’t, and how to improve",
+          "Demo the product increment",
+          "Plan the next sprint",
+          "Review individual performance"
+        ],
+        correct: 0,
+        explanation: "Continuous improvement is a core Agile principle."
+      },
+      {
+        id: 13,
+        category: "Agile/Scrum",
+        question: "A User Story follows which format?",
+        options: [
+          "As a [user], I want [feature] so that [benefit]",
+          "The system shall do X",
+          "Technical specification only",
+          "Only acceptance criteria"
+        ],
+        correct: 0,
+        explanation: "This is the standard Agile user story template."
+      },
+      {
+        id: 14,
+        category: "Agile/Scrum",
+        question: "Which ceremony is time-boxed to 15 minutes?",
+        options: [
+          "Daily Stand-up",
+          "Sprint Planning",
+          "Sprint Review",
+          "Backlog Refinement"
+        ],
+        correct: 0,
+        explanation: "Daily stand-up keeps the team aligned."
+      },
+      {
+        id: 15,
+        category: "Agile/Scrum",
+        question: "What does Definition of Done (DoD) ensure?",
+        options: [
+          "A shared understanding of when work is complete",
+          "Only code is written",
+          "No testing needed",
+          "Only UI is finished"
+        ],
+        correct: 0,
+        explanation: "DoD prevents incomplete work from being marked done."
+      },
+      {
+        id: 16,
+        category: "Stakeholder Management",
+        question: "RACI stands for:",
+        options: [
+          "Responsible, Accountable, Consulted, Informed",
+          "Risk, Action, Control, Issue",
+          "Requirements, Analysis, Communication, Implementation",
+          "Report, Approve, Collaborate, Inform"
+        ],
+        correct: 0,
+        explanation: "RACI matrix clarifies roles and reduces confusion."
+      },
+      {
+        id: 17,
+        category: "Stakeholder Management",
+        question: "The BEST way to manage conflicting stakeholder priorities is:",
+        options: [
+          "Facilitate a prioritization workshop using MoSCoW or weighted scoring",
+          "Ignore lower-level stakeholders",
+          "Let the loudest voice win",
+          "Delay the project"
+        ],
+        correct: 0,
+        explanation: "Structured facilitation is key to stakeholder alignment."
+      },
+      {
+        id: 18,
+        category: "Stakeholder Management",
+        question: "Which communication method is most effective for complex requirement discussions?",
+        options: [
+          "Face-to-face or video workshops",
+          "Email only",
+          "One-way slide deck",
+          "Social media post"
+        ],
+        correct: 0,
+        explanation: "Rich communication reduces misunderstanding."
+      },
+      {
+        id: 19,
+        category: "Stakeholder Management",
+        question: "Power/Interest Grid is used to:",
+        options: [
+          "Categorize stakeholders for tailored engagement",
+          "Write code",
+          "Test the application",
+          "Deploy to production"
+        ],
+        correct: 0,
+        explanation: "It helps decide how to manage different stakeholder types."
+      },
+      {
+        id: 20,
+        category: "Stakeholder Management",
+        question: "A BSA should always:",
+        options: [
+          "Act as a bridge between business and technical teams",
+          "Only focus on technical delivery",
+          "Only talk to end users",
+          "Avoid documentation"
+        ],
+        correct: 0,
+        explanation: "Communication &amp; collaboration is listed as a core skill."
+      },
+      {
+        id: 21,
+        category: "Business Process Mapping",
+        question: "Business Process Mapping (BPMN) is primarily used to:",
+        options: [
+          "Visualize, analyze, and optimize current and future processes",
+          "Write SQL queries",
+          "Design the UI only",
+          "Deploy servers"
+        ],
+        correct: 0,
+        explanation: "BPMN is a MUST-HAVE skill for identifying gaps and improvements."
+      },
+      {
+        id: 22,
+        category: "Business Process Mapping",
+        question: "In BPMN, a diamond shape represents:",
+        options: [
+          "A decision / gateway",
+          "An activity / task",
+          "An event",
+          "A data store"
+        ],
+        correct: 0,
+        explanation: "Gateways control the flow of the process."
+      },
+      {
+        id: 23,
+        category: "Documentation",
+        question: "The main difference between a BRD and FRD is:",
+        options: [
+          "BRD is high-level business needs; FRD details functional specifications",
+          "They are identical",
+          "FRD is only for testing",
+          "BRD contains only diagrams"
+        ],
+        correct: 0,
+        explanation: "Both are core documentation deliverables."
+      },
+      {
+        id: 24,
+        category: "Documentation",
+        question: "A traceability matrix links:",
+        options: [
+          "Requirements to test cases and business objectives",
+          "Only code to requirements",
+          "Only UI to requirements",
+          "Nothing – it is not used"
+        ],
+        correct: 0,
+        explanation: "It ensures nothing is missed during development and testing."
+      },
+      {
+        id: 25,
+        category: "Documentation",
+        question: "Which is a common deliverable in a BSA role?",
+        options: [
+          "Process flow diagrams, user stories, acceptance criteria",
+          "Only marketing copy",
+          "Server logs",
+          "Financial reports only"
+        ],
+        correct: 0,
+        explanation: "Documentation is a MUST-HAVE skill."
+      },
+      {
+        id: 26,
+        category: "SQL Server",
+        question: "Which SQL statement retrieves data from one or more tables?",
+        options: [
+          "SELECT",
+          "INSERT",
+          "UPDATE",
+          "DELETE"
+        ],
+        correct: 0,
+        explanation: "SELECT is the most common query used by BSAs for data analysis."
+      },
+      {
+        id: 27,
+        category: "SQL Server",
+        question: "INNER JOIN vs LEFT JOIN: what is the key difference?",
+        options: [
+          "INNER JOIN returns only matching rows; LEFT JOIN returns all rows from the left table",
+          "They are the same",
+          "LEFT JOIN is slower always",
+          "INNER JOIN is only for numeric data"
+        ],
+        correct: 0,
+        explanation: "A common SQL concept a BSA must understand for reporting and data analysis."
+      },
+      {
+        id: 28,
+        category: "Data Analysis",
+        question: "A BSA uses data analysis to:",
+        options: [
+          "Identify trends, gaps, and opportunities in business processes",
+          "Only write reports for the CEO",
+          "Replace stakeholder interviews",
+          "Skip requirements gathering"
+        ],
+        correct: 0,
+        explanation: "Data Analysis is both a core and nice-to-have skill."
+      },
+      {
+        id: 29,
+        category: "Data Analysis",
+        question: "What is the purpose of a data dictionary?",
+        options: [
+          "To document data elements, definitions, and business rules",
+          "To store actual production data",
+          "To run queries only",
+          "To design the UI"
+        ],
+        correct: 0,
+        explanation: "Essential for clear communication across teams."
+      },
+      {
+        id: 30,
+        category: "Backlog Management & Prioritization",
+        question: "MoSCoW method stands for:",
+        options: [
+          "Must have, Should have, Could have, Won’t have",
+          "Make, Should, Can, Will",
+          "Mandatory, Optional, Suggested, Critical",
+          "None of the above"
+        ],
+        correct: 0,
+        explanation: "Popular prioritization technique used in backlog management."
+      },
+      {
+        id: 31,
+        category: "Wireframing / UX",
+        question: "Wireframing is used to:",
+        options: [
+          "Quickly visualize screen layouts and user flows before development",
+          "Write final production code",
+          "Test performance only",
+          "Deploy to production"
+        ],
+        correct: 0,
+        explanation: "Wireframing is a core UX skill for BSAs."
+      },
+      {
+        id: 32,
+        category: "Design Thinking",
+        question: "The five stages of Design Thinking are:",
+        options: [
+          "Empathize, Define, Ideate, Prototype, Test",
+          "Code, Test, Deploy, Monitor, Fix",
+          "Plan, Build, Run, Review, Repeat",
+          "Gather, Document, Review, Approve, Close"
+        ],
+        correct: 0,
+        explanation: "Design Thinking is listed as a core skill."
+      },
+      {
+        id: 33,
+        category: "Product Management",
+        question: "A Product Backlog Refinement session is also known as:",
+        options: [
+          "Backlog Grooming",
+          "Sprint Retrospective",
+          "Daily Scrum",
+          "Sprint Review"
+        ],
+        correct: 0,
+        explanation: "Refinement ensures the backlog is ready for sprint planning."
+      },
+      {
+        id: 34,
+        category: "Nice-to-Have (Jira/Confluence)",
+        question: "In Jira, an Epic is:",
+        options: [
+          "A large body of work that can be broken into multiple stories",
+          "A single task",
+          "Only a bug report",
+          "A deployment ticket"
+        ],
+        correct: 0,
+        explanation: "Jira/Confluence knowledge is a nice-to-have skill."
+      },
+      {
+        id: 35,
+        category: "Nice-to-Have (Financial Services)",
+        question: "KPI examples in lending domain that a BSA would track include:",
+        options: [
+          "Approval rate, delinquency rate, average loan size, cycle time",
+          "Only website clicks",
+          "Social media followers",
+          "Employee satisfaction score only"
+        ],
+        correct: 0,
+        explanation: "Domain knowledge helps translate business metrics into system requirements."
+      }
+    ]
+
+    // STATE VARIABLES
+    let currentQuestions = []
+    let currentIndex = 0
+    let score = 0
+    let timerInterval = null
+    let timeLeft = 10
+    let userAnswers = []
+    let highScore = localStorage.getItem('bsaHighScore') || 0
+
+    // HELPER: Shuffle array (Fisher-Yates)
+    function shuffle(array) {
+      const copy = [...array]
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[copy[i], copy[j]] = [copy[j], copy[i]]
+      }
+      return copy
+    }
+
+    // START A NEW ROUND
+    function startNewRound() {
+      currentQuestions = shuffle(questionsPool).slice(0, 15)
+      currentIndex = 0
+      score = 0
+      userAnswers = []
+
+      document.getElementById('landing-screen').classList.add('hidden')
+      document.getElementById('results-screen').classList.add('hidden')
+      document.getElementById('quiz-screen').classList.remove('hidden')
+
+      loadQuestion()
+    }
+
+    // LOAD NEXT QUESTION
+    function loadQuestion() {
+      if (currentIndex >= currentQuestions.length) {
+        endRound()
+        return
+      }
+
+      // Reset UI
+      const q = currentQuestions[currentIndex]
+      document.getElementById('q-number').textContent = currentIndex + 1
+      document.getElementById('live-score').textContent = score
+      document.getElementById('category-pill').innerHTML = `<i class="fa-solid fa-tag mr-1"></i>${q.category}`
+      document.getElementById('question-text').textContent = q.question
+      document.getElementById('feedback-panel').classList.add('hidden')
+
+      // Render options
+      const grid = document.getElementById('options-grid')
+      grid.innerHTML = ''
+      q.options.forEach((optionText, idx) => {
+        const btn = document.createElement('button')
+        btn.className = `option-btn w-full text-left px-8 py-6 text-lg rounded-3xl border border-white/10 bg-white/5 hover:border-emerald-400 flex items-start`
+        btn.innerHTML = `
+          <span class="inline-flex items-center justify-center bg-white/10 text-white w-8 h-8 rounded-2xl mr-5 flex-shrink-0 text-sm font-mono">${String.fromCharCode(65 + idx)}</span>
+          <span>${optionText}</span>
+        `
+        btn.onclick = () => handleAnswer(idx, btn, q)
+        grid.appendChild(btn)
+      })
+
+      // Start 10-second timer
+      startTimer()
+    }
+
+    // TIMER
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval)
+      timeLeft = 10
+
+      const circle = document.getElementById('timer-progress')
+      const countEl = document.getElementById('timer-count')
+      circle.style.strokeDashoffset = '125.66'
+
+      timerInterval = setInterval(() => {
+        timeLeft--
+        countEl.textContent = timeLeft
+
+        // Progress ring
+        const offset = 125.66 * (timeLeft / 10)
+        circle.style.strokeDashoffset = offset
+
+        if (timeLeft <= 3) circle.setAttribute('stroke', '#f59e0b')
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval)
+          handleTimeout()
+        }
+      }, 1000)
+    }
+
+    // USER SELECTS AN ANSWER
+    function handleAnswer(selectedIdx, selectedBtn, q) {
+      clearInterval(timerInterval)
+
+      const isCorrect = selectedIdx === q.correct
+      if (isCorrect) score++
+
+      // Record answer
+      userAnswers.push({
+        id: q.id,
+        question: q.question,
+        selected: selectedIdx,
+        correct: q.correct,
+        explanation: q.explanation,
+        isCorrect: isCorrect
+      })
+
+      // Disable all buttons
+      const allBtns = document.querySelectorAll('#options-grid button')
+      allBtns.forEach(b => b.disabled = true)
+
+      // Highlight correct answer
+      allBtns[q.correct].classList.add('correct')
+
+      // Highlight selected if wrong
+      if (!isCorrect) selectedBtn.classList.add('incorrect')
+
+      // Show feedback
+      showFeedback(isCorrect, q.explanation)
+    }
+
+    // TIME RAN OUT
+    function handleTimeout() {
+      const q = currentQuestions[currentIndex]
+
+      userAnswers.push({
+        id: q.id,
+        question: q.question,
+        selected: null,
+        correct: q.correct,
+        explanation: q.explanation,
+        isCorrect: false
+      })
+
+      const allBtns = document.querySelectorAll('#options-grid button')
+      allBtns.forEach(b => b.disabled = true)
+      allBtns[q.correct].classList.add('correct')
+
+      showFeedback(false, "⏰ Time's up! " + q.explanation)
+    }
+
+    // SHOW FEEDBACK
+    function showFeedback(isCorrect, explanation) {
+      const panel = document.getElementById('feedback-panel')
+      panel.classList.remove('hidden')
+
+      document.getElementById('feedback-icon').innerHTML = isCorrect 
+        ? `<i class="fa-solid fa-circle-check text-emerald-400"></i>` 
+        : `<i class="fa-solid fa-circle-xmark text-red-400"></i>`
+
+      document.getElementById('feedback-title').innerHTML = isCorrect 
+        ? `<span class="text-emerald-400">Correct!</span>` 
+        : `<span class="text-red-400">Not quite…</span>`
+
+      document.getElementById('feedback-explanation').innerHTML = explanation
+    }
+
+    // GO TO NEXT QUESTION
+    function nextQuestion() {
+      currentIndex++
+      loadQuestion()
+    }
+
+    // END OF ROUND
+    function endRound() {
+      document.getElementById('quiz-screen').classList.add('hidden')
+      const results = document.getElementById('results-screen')
+      results.classList.remove('hidden')
+
+      const percentage = Math.round((score / 15) * 100)
+
+      document.getElementById('results-score').textContent = score
+      document.getElementById('correct-num').textContent = score
+      document.getElementById('incorrect-num').textContent = 15 - score
+      document.getElementById('accuracy-num').textContent = `${percentage}%`
+
+      // Update high score
+      if (score > highScore) {
+        highScore = score
+        localStorage.setItem('bsaHighScore', highScore)
+        document.getElementById('high-score-display').textContent = `${highScore}/15`
+      }
+    }
+
+    // RESTART
+    function restartQuiz() {
+      document.getElementById('results-screen').classList.add('hidden')
+      document.getElementById('landing-screen').classList.remove('hidden')
+    }
+
+    // REVIEW ALL ANSWERS
+    function showReview() {
+      const container = document.getElementById('review-list')
+      container.innerHTML = ''
+
+      userAnswers.forEach((answer, i) => {
+        const div = document.createElement('div')
+        div.className = 'border border-white/10 rounded-3xl p-6'
+        div.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <div class="font-medium">${i + 1}. ${answer.question}</div>
+            <div class="${answer.isCorrect ? 'text-emerald-400' : 'text-red-400'} text-sm font-semibold px-4 py-1 rounded-3xl border ${answer.isCorrect ? 'border-emerald-400' : 'border-red-400'}">
+              ${answer.isCorrect ? 'CORRECT' : 'INCORRECT'}
+            </div>
+          </div>
+          <p class="text-zinc-400 text-sm mb-5">${answer.explanation}</p>
+          <div class="text-xs grid grid-cols-2 gap-4">
+            <div>
+              <span class="block text-zinc-500">Your answer</span>
+              <span class="font-medium">${answer.selected !== null ? answer.question.options[answer.selected] : '— (timed out)'}</span>
+            </div>
+            <div>
+              <span class="block text-emerald-400">Correct answer</span>
+              <span class="font-medium">${answer.question.options[answer.correct]}</span>
+            </div>
+          </div>
+        `
+        container.appendChild(div)
+      })
+
+      document.getElementById('review-modal').classList.remove('hidden')
+      document.getElementById('review-modal').classList.add('flex')
+    }
+
+    function hideReview() {
+      const modal = document.getElementById('review-modal')
+      modal.classList.add('hidden')
+      modal.classList.remove('flex')
+    }
+
+    function showHighScore() {
+      const msg = highScore > 0 
+        ? `Your best score is ${highScore}/15 🎉` 
+        : 'No high score yet – start a round!'
+      alert(msg)
+    }
+
+    // BOOT THE APP
+    window.onload = () => {
+      document.getElementById('high-score-display').textContent = `${highScore}/15`
+      console.log('%c✅ Fully optimized BSA Quiz ready! Add new questions to questionsPool array anytime.', 'color:#10b981;font-weight:600')
+    }
+  </script>
+</body>
+</html>
+```
